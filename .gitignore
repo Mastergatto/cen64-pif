@@ -1,0 +1,7 @@
+# Compiler speak.
+libpif.a
+*.o
+
+# Swap files.
+*.swp
+
