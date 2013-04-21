@@ -22,6 +22,8 @@
 #include <string.h>
 #endif
 
+#include <GL/glfw.h>
+
 /* ============================================================================
  *  CalculateMemPakCRC: Calculates the CRC of MemPak data.
  *  TODO: Ripped straight from MAME/MESS; look into it.
@@ -64,13 +66,41 @@ PIFHandleCommand(unsigned channel, uint8_t *sendBuffer,
 
   switch(command) {
   case 0x00:
-    debug("Command: Read PIF status.");
+  case 0xFF:
+    debug("Command: Read PIF status/reset?");
+
+    switch(channel) {
+    case 0:
+      recvBuffer[0] = 0x05;
+      recvBuffer[1] = 0x00;
+      recvBuffer[2] = 0x01;
+      break;
+
+    case 1:
+    case 2:
+    case 3:
+      return 1;
+
+    case 4:
+      recvBuffer[0] = 0x00;
+      recvBuffer[1] = 0x80;
+      recvBuffer[2] = 0x00;
+      break;
+
+    default:
+      debug("PIF: Status/reset on unknown channel?");
+      return 1;
+    }
+
     break;
 
   case 0x01:
     switch(channel) {
     case 0:
       debug("Read from P1 controller.");
+      memset(recvBuffer, 0, 4 * sizeof(*recvBuffer));
+
+      glfwPollEvents();
       break;
 
     case 1:
@@ -103,10 +133,6 @@ PIFHandleCommand(unsigned channel, uint8_t *sendBuffer,
 
     debugarg("MemPak | Destination: [0x%.4X].", address);
     recvBuffer[0] = CalculateMemPakCRC(sendBuffer + 3, sendBytes - 3);
-    break;
-
-  case 0xFF:
-    debug("Command: Reset.");
     break;
 
   default:
