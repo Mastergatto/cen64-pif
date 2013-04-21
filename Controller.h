@@ -31,6 +31,8 @@ struct PIFController {
 
   const uint8_t *rom;
   uint32_t regs[NUM_SI_REGISTERS];
+  uint32_t status;
+
   uint8_t ram[PIF_RAM_ADDRESS_LEN];
 };
 

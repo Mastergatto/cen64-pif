@@ -99,8 +99,8 @@ PIFHandleCommand(unsigned channel, uint8_t *sendBuffer,
     case 0:
       debug("Read from P1 controller.");
       memset(recvBuffer, 0, 4 * sizeof(*recvBuffer));
-
-      glfwPollEvents();
+      recvBuffer[0] = 0xFF;
+      recvBuffer[1] = 0xFF;
       break;
 
     case 1:
@@ -194,7 +194,7 @@ PIFProcess(struct PIFController *controller) {
     channel++;
   }
 
-  controller->ram[0x3F] = 0;
+  /*controller->ram[0x3F] = 0;*/ /* ??? */
 }
 
 /* ============================================================================

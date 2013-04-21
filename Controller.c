@@ -121,9 +121,6 @@ InitPIF(struct PIFController *controller, const uint8_t *romImage) {
   controller->ram[0x26] = 0x3F;
   controller->ram[0x27] = 0x3F;
 
-  /* Don't know why this is necessary... */
-  controller->ram[CIC_STATUS_BYTE] = 0x80;
-
   controller->rom = romImage;
 }
 
@@ -136,24 +133,18 @@ PIFRAMRead(void *_controller, uint32_t address, void *_data) {
 	uint32_t *data = (uint32_t*) _data, word;
 
   debugarg("PIFRAMRead: Read from address [0x%.8X]", address);
+  address = address - PIF_RAM_BASE_ADDRESS;
 
-  /* Don't know why this is necessary... */
-  if (address == PIF_RAM_BASE_ADDRESS + CIC_STATUS_BYTE) {
-    uint8_t statusByte = controller->ram[CIC_STATUS_BYTE];
+  if (address == 0x24)
+    controller->status = 0x80;
 
-    controller->ram[CIC_STATUS_BYTE] = (statusByte == 0x00)
-      ? 0x80: 0x00;
-
-    *data = controller->ram[CIC_STATUS_BYTE];
+  else if (address == 0x3C) {
+    *data = controller->status;
+    return 0;
   }
 
-  /* Normal read. */
-  else {
-    address = address - PIF_RAM_BASE_ADDRESS;
-
-    memcpy(&word, controller->ram + address, sizeof(word));
-    *data = ByteOrderSwap32(word);
-  }    
+  memcpy(&word, controller->ram + address, sizeof(word));
+  *data = ByteOrderSwap32(word);
 
   return 0;
 }
