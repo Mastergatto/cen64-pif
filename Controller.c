@@ -163,9 +163,8 @@ PIFRAMWrite(void *_controller, uint32_t address, void *_data) {
   word = ByteOrderSwap32(*data);
   memcpy(controller->ram + address, &word, sizeof(word));
 
-  /* MAME raises interrupts, so we will too. */
   BusRaiseRCPInterrupt(controller->bus, MI_INTR_SI);
-
+  controller->regs[SI_STATUS_REG] |= 0x1000;
   return 0;
 }
 

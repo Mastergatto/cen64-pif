@@ -187,14 +187,14 @@ PIFProcess(struct PIFController *controller) {
       }
 
       else if (result == 1) {
-        controller->ram[ptr] |= 0x80;
+        controller->ram[ptr - 2] |= 0x80;
       }
     }
 
     channel++;
   }
 
-  /*controller->ram[0x3F] = 0;*/ /* ??? */
+  controller->ram[0x3F] = 0;
 }
 
 /* ============================================================================
