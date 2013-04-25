@@ -98,25 +98,31 @@ PIFHandleCommand(unsigned channel, uint8_t *sendBuffer,
     switch(channel) {
     case 0:
       debug("Read from P1 controller.");
-      memset(recvBuffer, 0, 4 * sizeof(*recvBuffer));
-      recvBuffer[0] = 0xFF;
-      recvBuffer[1] = 0xFF;
+      recvBuffer[0] = 0x00;
+      recvBuffer[1] = 0x00;
+      recvBuffer[2] = 0x00;
+      recvBuffer[3] = 0x00;
+
+      glfwPollEvents();
+      if (glfwGetKey(GLFW_KEY_ENTER) == GLFW_PRESS)
+        recvBuffer[0] = BUTTON_START >> 8;
       break;
 
     case 1:
       debug("Read from P2 controller.");
-      break;
+      return 1;
 
     case 2:
       debug("Read from P3 controller.");
-      break;
+      return 1;
 
     case 3:
       debug("Read from P4 controller.");
-      break;
+      return 1;
 
     default:
       debug("Read from invalid controller?");
+      return 1;
     }
 
     break;
@@ -151,14 +157,14 @@ static void PIFProcess(struct PIFController *);
 static void
 PIFProcess(struct PIFController *controller) {
   unsigned channel = 0;
-  unsigned ptr = 0;
+  int ptr = 0;
 
-  if (controller->ram[0x3F] != 0x1)
+  if (controller->command[0x3F] != 0x1)
     return;
 
   /* Logic ripped from MAME. */
   while (ptr < 0x3F) {
-    int8_t sendBytes = controller->ram[ptr++];
+    int8_t sendBytes = controller->command[ptr++];
 
     if (sendBytes == -2)
       break;
@@ -167,7 +173,7 @@ PIFProcess(struct PIFController *controller) {
       continue;
 
     if (sendBytes > 0 && (sendBytes & 0xC0) == 0) {
-      int8_t recvBytes = controller->ram[ptr++];
+      int8_t recvBytes = controller->command[ptr++];
       uint8_t recvBuffer[0x40];
       uint8_t sendBuffer[0x40];
       int result;
@@ -175,20 +181,21 @@ PIFProcess(struct PIFController *controller) {
       if (recvBytes == -2)
         break;
 
-      memcpy(sendBuffer, controller->ram + ptr, sendBytes);
+      memcpy(sendBuffer, controller->command + ptr, sendBytes);
       ptr += sendBytes;
 
       result = PIFHandleCommand(channel, sendBuffer,
         sendBytes, recvBuffer, recvBytes);
 
       if (result == 0) {
-        memcpy(controller->ram + ptr, recvBuffer, recvBytes);
-        ptr += recvBytes;
+        if (recvBytes >= 0 && recvBytes < 64 - ptr) {
+          memcpy(controller->ram + ptr, recvBuffer, recvBytes);
+          ptr += recvBytes;
+        }
       }
 
-      else if (result == 1) {
+      else if (result == 1)
         controller->ram[ptr - 2] |= 0x80;
-      }
     }
 
     channel++;
@@ -240,6 +247,7 @@ SIHandleDMAWrite(struct PIFController *controller) {
   debugarg("DMA | LENGTH : [0x%.8x].", 64);
 
   DMAFromDRAM(controller->bus, controller->ram, source, 64);
+  memcpy(controller->command, controller->ram, 64);
 
   controller->regs[SI_STATUS_REG] |= 0x1000;
   BusRaiseRCPInterrupt(controller->bus, MI_INTR_SI);

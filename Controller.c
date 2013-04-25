@@ -115,12 +115,6 @@ InitPIF(struct PIFController *controller, const uint8_t *romImage) {
   debug("Initializing PIF.");
   memset(controller, 0, sizeof(*controller));
 
-  /* Assume CIC-NUS-6102. */
-  controller->ram[0x24] = 0x00;
-  controller->ram[0x25] = 0x02;
-  controller->ram[0x26] = 0x3F;
-  controller->ram[0x27] = 0x3F;
-
   controller->rom = romImage;
 }
 
