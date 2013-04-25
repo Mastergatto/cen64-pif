@@ -30,7 +30,7 @@
  * ========================================================================= */
 static uint8_t
 CalculateMemPakCRC(uint8_t *buffer, int size) {
-  uint32_t crc;
+  uint32_t crc = 0;
   int i, j;
 
   for (i = 0; i <= size; i++) {
@@ -127,15 +127,39 @@ PIFHandleCommand(unsigned channel, uint8_t *sendBuffer,
 
     break;
 
+  case 0x02:
+    debug("MemPak | Command: Read from MemPak.");
+    memcpy(&address, sendBuffer + 1, sizeof(address));
+    address = ByteOrderSwap16(address) & ~0x1F;
+
+    if (address == 0x8000) {
+      memset(recvBuffer, 0, recvBytes - 1);
+      recvBuffer[recvBytes - 1] = CalculateMemPakCRC(
+        recvBuffer, recvBytes - 1);
+
+      break;
+    }
+
+    else if (address < 0x7FE0) {
+      memset(recvBuffer, 0, recvBytes - 1);
+      recvBuffer[recvBytes - 1] = CalculateMemPakCRC(
+        recvBuffer, recvBytes - 1);
+
+      break;
+    }
+
+    return 1;
+
   case 0x03:
     debug("MemPak | Command: Write to MemPak.");
     memcpy(&address, sendBuffer + 1, sizeof(address));
     address = ByteOrderSwap16(address) & ~0x1F;
 
-    if (address > 0x8000) {
-      debug("MemPak: Write to invalid address.");
-      break;
+#if 0
+    if (address < 0x8000) {
+      /* ... */
     }
+#endif
 
     debugarg("MemPak | Destination: [0x%.4X].", address);
     recvBuffer[0] = CalculateMemPakCRC(sendBuffer + 3, sendBytes - 3);
