@@ -232,8 +232,11 @@ SIRegWrite(void *_controller, uint32_t address, void *_data) {
 
   debugarg("SIRegWrite: Writing to register [%s].", SIRegisterMnemonics[reg]);
 
-  if (reg == SI_STATUS_REG)
+  if (reg == SI_STATUS_REG) {
     BusClearRCPInterrupt(controller->bus, MI_INTR_SI);
+    controller->regs[SI_STATUS_REG] &= ~0x1000;
+  }
+
   else if (reg == SI_PIF_ADDR_RD64B_REG)
     SIHandleDMARead(controller);
   else if (reg == SI_PIF_ADDR_WR64B_REG)

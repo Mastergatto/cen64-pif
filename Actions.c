@@ -106,6 +106,9 @@ PIFHandleCommand(unsigned channel, uint8_t *sendBuffer,
       glfwPollEvents();
       if (glfwGetKey(GLFW_KEY_ENTER) == GLFW_PRESS)
         recvBuffer[0] = BUTTON_START >> 8;
+      if (glfwGetKey(GLFW_KEY_ESC) == GLFW_PRESS)
+        recvBuffer[0] = BUTTON_B >> 8;
+
       break;
 
     case 1:
