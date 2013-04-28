@@ -108,6 +108,28 @@ PIFHandleCommand(unsigned channel, uint8_t *sendBuffer,
         recvBuffer[0] = BUTTON_START >> 8;
       if (glfwGetKey(GLFW_KEY_ESC) == GLFW_PRESS)
         recvBuffer[0] = BUTTON_B >> 8;
+      if (glfwGetKey(GLFW_KEY_SPACE) == GLFW_PRESS)
+        recvBuffer[0] = BUTTON_A >> 8;
+
+      if (glfwGetKey(GLFW_KEY_LEFT) == GLFW_PRESS) {
+        recvBuffer[1] = BUTTON_JOY_LEFT >> 8;
+        recvBuffer[2] = -127;
+      }
+
+      if (glfwGetKey(GLFW_KEY_RIGHT) == GLFW_PRESS) {
+        recvBuffer[1] = BUTTON_JOY_RIGHT >> 8;
+        recvBuffer[2] = 127;
+      }
+
+      if (glfwGetKey(GLFW_KEY_UP) == GLFW_PRESS) {
+        recvBuffer[1] = BUTTON_JOY_UP >> 8;
+        recvBuffer[3] = 127;
+      }
+
+      if (glfwGetKey(GLFW_KEY_DOWN) == GLFW_PRESS) {
+        recvBuffer[1] = BUTTON_JOY_DOWN >> 8;
+        recvBuffer[3] = -127;
+      }
 
       break;
 
