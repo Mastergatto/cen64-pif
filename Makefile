@@ -35,7 +35,7 @@ MKDIR = /bin/mkdir -p
 AR = ar
 DOXYGEN = doxygen
 
-PIF_FLAGS = -DLITTLE_ENDIAN
+PIF_FLAGS = -DLITTLE_ENDIAN -DRETROLINK_JOYSTICK
 WARNINGS = -Wall -Wextra -pedantic -Wunsafe-loop-optimizations
 
 COMMON_CFLAGS = $(WARNINGS) $(PIF_FLAGS) -std=c99 -march=native -I.

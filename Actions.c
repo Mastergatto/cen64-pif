@@ -64,6 +64,12 @@ PIFHandleCommand(unsigned channel, uint8_t *sendBuffer,
   uint8_t command = sendBuffer[0];
   uint16_t address;
 
+#ifdef RETROLINK_JOYSTICK
+  unsigned char buttons[12];
+  float joystick[2];
+  int8_t axes[2];
+#endif
+
   switch(command) {
   case 0x00:
   case 0xFF:
@@ -103,33 +109,40 @@ PIFHandleCommand(unsigned channel, uint8_t *sendBuffer,
       recvBuffer[2] = 0x00;
       recvBuffer[3] = 0x00;
 
-      glfwPollEvents();
-      if (glfwGetKey(GLFW_KEY_ENTER) == GLFW_PRESS)
-        recvBuffer[0] = BUTTON_START >> 8;
-      if (glfwGetKey(GLFW_KEY_ESC) == GLFW_PRESS)
-        recvBuffer[0] = BUTTON_B >> 8;
-      if (glfwGetKey(GLFW_KEY_SPACE) == GLFW_PRESS)
-        recvBuffer[0] = BUTTON_A >> 8;
+#ifdef RETROLINK_JOYSTICK
+      /* Read the x and y axes of the controller. */
+      glfwGetJoystickPos(GLFW_JOYSTICK_1, joystick, 2);
+      glfwGetJoystickButtons(GLFW_JOYSTICK_1, buttons, 12);
 
-      if (glfwGetKey(GLFW_KEY_LEFT) == GLFW_PRESS) {
-        recvBuffer[1] = BUTTON_JOY_LEFT >> 8;
-        recvBuffer[2] = -127;
-      }
+      axes[0] = joystick[0] * 127;
+      axes[1] = joystick[1] * 127;
+      recvBuffer[2] = axes[0];
+      recvBuffer[3] = axes[1];
 
-      if (glfwGetKey(GLFW_KEY_RIGHT) == GLFW_PRESS) {
-        recvBuffer[1] = BUTTON_JOY_RIGHT >> 8;
-        recvBuffer[2] = 127;
-      }
+      /* Check for joystick input. */
+      recvBuffer[0] |= (axes[0] < 0) ? (unsigned) BUTTON_JOY_LEFT >> 8 : 0;
+      recvBuffer[0] |= (axes[0] > 0) ? (unsigned) BUTTON_JOY_RIGHT >> 8 : 0;
+      recvBuffer[0] |= (axes[1] < 0) ? (unsigned) BUTTON_JOY_DOWN >> 8 : 0;
+      recvBuffer[0] |= (axes[1] > 0) ? (unsigned) BUTTON_JOY_UP >> 8 : 0;
 
-      if (glfwGetKey(GLFW_KEY_UP) == GLFW_PRESS) {
-        recvBuffer[1] = BUTTON_JOY_UP >> 8;
-        recvBuffer[3] = 127;
-      }
+      /* Check for C buttons. */
+      recvBuffer[1] |= buttons[0] << 3;
+      recvBuffer[1] |= buttons[1] << 0;
+      recvBuffer[1] |= buttons[2] << 2;
+      recvBuffer[1] |= buttons[3] << 1;
 
-      if (glfwGetKey(GLFW_KEY_DOWN) == GLFW_PRESS) {
-        recvBuffer[1] = BUTTON_JOY_DOWN >> 8;
-        recvBuffer[3] = -127;
-      }
+      /* Check for L/R flippers. */
+      recvBuffer[1] |= buttons[4] << 5;
+      recvBuffer[1] |= buttons[5] << 4;
+
+      /* Check for A, Z, and B buttons. */
+      recvBuffer[0] |= buttons[6] << 7;
+      recvBuffer[0] |= buttons[7] << 5;
+      recvBuffer[0] |= buttons[8] << 6;
+
+      /* Check for the start button. */
+      recvBuffer[0] |= buttons[9] << 4;
+#endif
 
       break;
 
