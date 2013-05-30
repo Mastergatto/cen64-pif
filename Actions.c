@@ -205,6 +205,7 @@ PIFHandleCommand(unsigned channel, uint8_t *sendBuffer,
 
   default:
     debugarg("Unimplemented command: [0x%.2X].", command);
+    return 1;
   }
 
   return 0;
