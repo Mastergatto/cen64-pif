@@ -35,6 +35,7 @@ struct PIFController {
 
   uint8_t command[PIF_RAM_ADDRESS_LEN];
   uint8_t ram[PIF_RAM_ADDRESS_LEN];
+  uint8_t eeprom[2048];
 };
 
 struct PIFController *CreatePIF(const char *rompath);

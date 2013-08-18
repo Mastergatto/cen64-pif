@@ -59,10 +59,11 @@ CalculateMemPakCRC(uint8_t *buffer, int size) {
  *  TODO: Ripped straight from MAME/MESS; look into it.
  * ========================================================================= */
 static int
-PIFHandleCommand(unsigned channel, uint8_t *sendBuffer,
-  uint8_t sendBytes, uint8_t *recvBuffer, uint8_t recvBytes) {
+PIFHandleCommand(struct PIFController *controller, unsigned channel,
+  uint8_t *sendBuffer, uint8_t sendBytes, uint8_t *recvBuffer,
+  uint8_t recvBytes) {
   uint8_t command = sendBuffer[0];
-  uint16_t address;
+  uint16_t address, offset;
 
 #ifdef RETROLINK_JOYSTICK
   unsigned char buttons[12];
@@ -203,8 +204,37 @@ PIFHandleCommand(unsigned channel, uint8_t *sendBuffer,
     recvBuffer[0] = CalculateMemPakCRC(sendBuffer + 3, sendBytes - 3);
     break;
 
+  case 0x04:
+    debug("EEPROM | Command: Read from EEPROM.");
+
+    if (channel != 4)
+      return 1;
+
+    if (sendBytes != 2 || recvBytes != 8) {
+      debug("EEPROM | Unusual send/recv sizes?");
+    }
+
+    offset = sendBuffer[1] * 8;
+    memcpy(recvBuffer, controller->eeprom + offset, 8);
+    break;
+
+  case 0x05:
+    debug("EEPROM | Command: Write to EEPROM.");
+
+    if (channel != 4)
+      return 1;
+
+    if (sendBytes != 10 || recvBytes != 1) {
+      debug("EEPROM | Unusual send/recv sizes?");
+    }
+
+    offset = sendBuffer[1] * 8;
+    memcpy(controller->eeprom + offset, sendBuffer + 2, 8);
+    break;
+
   default:
     debugarg("Unimplemented command: [0x%.2X].", command);
+
     return 1;
   }
 
@@ -247,14 +277,12 @@ PIFProcess(struct PIFController *controller) {
       memcpy(sendBuffer, controller->command + ptr, sendBytes);
       ptr += sendBytes;
 
-      result = PIFHandleCommand(channel, sendBuffer,
-        sendBytes, recvBuffer, recvBytes);
+      result = PIFHandleCommand(controller, channel,
+        sendBuffer, sendBytes, recvBuffer, recvBytes);
 
       if (result == 0) {
-        if (recvBytes >= 0 && recvBytes < 64 - ptr) {
-          memcpy(controller->ram + ptr, recvBuffer, recvBytes);
-          ptr += recvBytes;
-        }
+        memcpy(controller->ram + ptr, recvBuffer, recvBytes);
+        ptr += recvBytes;
       }
 
       else if (result == 1)

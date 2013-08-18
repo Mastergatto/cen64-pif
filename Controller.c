@@ -119,14 +119,64 @@ InitPIF(struct PIFController *controller, const uint8_t *romImage) {
 }
 
 /* ============================================================================
- *  PIFRAMRead: Read from PIF.
+ *  PIFRAMReadByte: Read byte from PIF.
  * ========================================================================= */
 int
-PIFRAMRead(void *_controller, uint32_t address, void *_data) {
+PIFRAMReadByte(void *_controller, uint32_t address, void *_data) {
+	struct PIFController *controller = (struct PIFController*) _controller;
+	uint8_t *data = (uint8_t*) _data, byte;
+
+  debugarg("PIFRAMReadByte: Read from address [0x%.8X]", address);
+  address = address - PIF_RAM_BASE_ADDRESS;
+
+  if (address == 0x24)
+    controller->status = 0x80;
+
+  else if (address == 0x3C) {
+    *data = controller->status;
+    return 0;
+  }
+
+  memcpy(&byte, controller->ram + address, sizeof(byte));
+  *data = byte;
+
+  return 0;
+}
+
+/* ============================================================================
+ *  PIFRAMReadHWord: Read halfword from PIF.
+ * ========================================================================= */
+int
+PIFRAMReadHWord(void *_controller, uint32_t address, void *_data) {
+	struct PIFController *controller = (struct PIFController*) _controller;
+	uint16_t *data = (uint16_t*) _data, hword;
+
+  debugarg("PIFRAMReadHWord: Read from address [0x%.8X]", address);
+  address = address - PIF_RAM_BASE_ADDRESS;
+
+  if (address == 0x24)
+    controller->status = 0x80;
+
+  else if (address == 0x3C) {
+    *data = controller->status;
+    return 0;
+  }
+
+  memcpy(&hword, controller->ram + address, sizeof(hword));
+  *data = ByteOrderSwap16(hword);
+
+  return 0;
+}
+
+/* ============================================================================
+ *  PIFRAMReadWord: Read word from PIF.
+ * ========================================================================= */
+int
+PIFRAMReadWord(void *_controller, uint32_t address, void *_data) {
 	struct PIFController *controller = (struct PIFController*) _controller;
 	uint32_t *data = (uint32_t*) _data, word;
 
-  debugarg("PIFRAMRead: Read from address [0x%.8X]", address);
+  debugarg("PIFRAMReadWord: Read from address [0x%.8X]", address);
   address = address - PIF_RAM_BASE_ADDRESS;
 
   if (address == 0x24)
@@ -144,14 +194,52 @@ PIFRAMRead(void *_controller, uint32_t address, void *_data) {
 }
 
 /* ============================================================================
- *  PIFRAMWrite: Read from PIF.
+ *  PIFRAMWriteByte: Write byte to PIF.
  * ========================================================================= */
 int
-PIFRAMWrite(void *_controller, uint32_t address, void *_data) {
+PIFRAMWriteByte(void *_controller, uint32_t address, void *_data) {
+	struct PIFController *controller = (struct PIFController*) _controller;
+	uint8_t *data = (uint8_t*) _data, byte;
+
+  debugarg("PIFRAMWriteByte: Write to address [0x%.8X]", address);
+  address = address - PIF_RAM_BASE_ADDRESS;
+
+  byte = *data;
+  memcpy(controller->ram + address, &byte, sizeof(byte));
+
+  BusRaiseRCPInterrupt(controller->bus, MI_INTR_SI);
+  controller->regs[SI_STATUS_REG] |= 0x1000;
+  return 0;
+}
+
+/* ============================================================================
+ *  PIFRAMWriteHWord: Write halfword to PIF.
+ * ========================================================================= */
+int
+PIFRAMWriteHWord(void *_controller, uint32_t address, void *_data) {
+	struct PIFController *controller = (struct PIFController*) _controller;
+	uint16_t *data = (uint16_t*) _data, hword;
+
+  debugarg("PIFRAMWriteHWord: Write to address [0x%.8X]", address);
+  address = address - PIF_RAM_BASE_ADDRESS;
+
+  hword = ByteOrderSwap16(*data);
+  memcpy(controller->ram + address, &hword, sizeof(hword));
+
+  BusRaiseRCPInterrupt(controller->bus, MI_INTR_SI);
+  controller->regs[SI_STATUS_REG] |= 0x1000;
+  return 0;
+}
+
+/* ============================================================================
+ *  PIFRAMWriteWord: Write word to PIF.
+ * ========================================================================= */
+int
+PIFRAMWriteWord(void *_controller, uint32_t address, void *_data) {
 	struct PIFController *controller = (struct PIFController*) _controller;
 	uint32_t *data = (uint32_t*) _data, word;
 
-  debugarg("PIFRAMWrite: Write to address [0x%.8X]", address);
+  debugarg("PIFRAMWriteWord: Write to address [0x%.8X]", address);
   address = address - PIF_RAM_BASE_ADDRESS;
 
   word = ByteOrderSwap32(*data);
