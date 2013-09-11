@@ -121,10 +121,7 @@ PIFHandleCommand(struct PIFController *controller, unsigned channel,
       recvBuffer[3] = axes[1];
 
       /* Check for joystick input. */
-      recvBuffer[0] |= (axes[0] < 0) ? (unsigned) BUTTON_JOY_LEFT >> 8 : 0;
-      recvBuffer[0] |= (axes[0] > 0) ? (unsigned) BUTTON_JOY_RIGHT >> 8 : 0;
-      recvBuffer[0] |= (axes[1] < 0) ? (unsigned) BUTTON_JOY_DOWN >> 8 : 0;
-      recvBuffer[0] |= (axes[1] > 0) ? (unsigned) BUTTON_JOY_UP >> 8 : 0;
+      recvBuffer[0] = 0;
 
       /* Check for C buttons. */
       recvBuffer[1] |= buttons[0] << 3;
