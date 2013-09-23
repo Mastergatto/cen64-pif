@@ -13,17 +13,12 @@
 #include "Common.h"
 #include "Controller.h"
 
-#ifdef __cplusplus
-#include <cstddef>
-#else
-#include <stddef.h>
-#endif
-
-void DMAFromDRAM(struct BusController *, void *, uint32_t, uint32_t);
-void DMAToDRAM(struct BusController *, uint32_t, const void *, size_t);
-
 void SIHandleDMARead(struct PIFController *);
 void SIHandleDMAWrite(struct PIFController *);
+
+int ReadEEPROMFile(struct PIFController *);
+void SetEEPROMFile(struct PIFController *, const char *);
+int WriteEEPROMFile(struct PIFController *);
 
 #endif
 

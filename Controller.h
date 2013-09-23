@@ -13,6 +13,12 @@
 #include "Address.h"
 #include "Common.h"
 
+#ifdef __cplusplus
+#include <cstdio>
+#else
+#include <stdio.h>
+#endif
+
 enum SIRegister {
 #define Y(reg) reg,
 #include "Registers.md"
@@ -30,6 +36,7 @@ struct PIFController {
   struct BusController *bus;
 
   const uint8_t *rom;
+  FILE *eepromFile;
   uint32_t regs[NUM_SI_REGISTERS];
   uint32_t status;
 
@@ -38,8 +45,9 @@ struct PIFController {
   uint8_t eeprom[2048];
 };
 
-struct PIFController *CreatePIF(const char *rompath);
+struct PIFController *CreatePIF(const char *);
 void DestroyPIF(struct PIFController *);
+void SetEEPROMFilename(struct PIFController *, const char *);
 
 #endif
 

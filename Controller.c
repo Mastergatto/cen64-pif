@@ -104,6 +104,11 @@ CreatePIF(const char *romPath) {
  * ========================================================================= */
 void
 DestroyPIF(struct PIFController *controller) {
+  if (controller->eepromFile) {
+    if (WriteEEPROMFile(controller))
+      printf("Failed to write the EEPROM file.\n");
+  }
+
   free(controller);
 }
 

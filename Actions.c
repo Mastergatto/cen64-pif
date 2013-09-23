@@ -16,9 +16,11 @@
 
 #ifdef __cplusplus
 #include <cassert>
+#include <cstddef>
 #include <cstring>
 #else
 #include <assert.h>
+#include <stddef.h>
 #include <string.h>
 #endif
 
@@ -293,6 +295,55 @@ PIFProcess(struct PIFController *controller) {
 }
 
 /* ============================================================================
+ *  ReadEEPROMFile: Reads the contents EEPROM file into the controller.
+ * ========================================================================= */
+int
+ReadEEPROMFile(struct PIFController *controller) {
+  size_t cur = 0;
+
+  if (!controller->eepromFile)
+    return -1;
+
+  rewind(controller->eepromFile);
+
+  while (cur < sizeof(controller->eeprom)) {
+    size_t remaining = sizeof(controller->eeprom) - cur;
+    size_t ret;
+
+    if ((ret = fread(controller->eeprom + cur, 1,
+      remaining, controller->eepromFile)) == 0 &&
+      ferror(controller->eepromFile))
+      return -1;
+
+    /* Ignore invalid sized files. */
+    if (feof(controller->eepromFile)) {
+      memset(controller->eeprom, 0, sizeof(controller->eeprom));
+      printf("EEPROM: Ignoring short EEPROM file.\n");
+      return 0;
+    }
+
+    cur += ret;
+  }
+
+  return 0;
+}
+
+/* ============================================================================
+ *  SetEEPROMFile: Sets the backing file for EEPROM saves.
+ * ========================================================================= */
+void
+SetEEPROMFile(struct PIFController *controller, const char *filename) {
+  if (controller->eepromFile != NULL)
+    fclose(controller->eepromFile);
+
+  /* Try opening with rb+ first, then wb+ iff we fail. */
+  if ((controller->eepromFile = fopen(filename, "rb+")) == NULL) {
+    controller->eepromFile = fopen(filename, "wb+");
+    return;
+  }
+}
+
+/* ============================================================================
  *  SIHandleDMARead: Invoked when SI_PIF_ADDR_RD64B_REG is written.
  *
  *  PIF RAM = Source.
@@ -339,5 +390,32 @@ SIHandleDMAWrite(struct PIFController *controller) {
 
   controller->regs[SI_STATUS_REG] |= 0x1000;
   BusRaiseRCPInterrupt(controller->bus, MI_INTR_SI);
+}
+
+/* ============================================================================
+ *  WriteEEPROMFile: Dumps the contents of the EEPROM to the backing file.
+ * ========================================================================= */
+int
+WriteEEPROMFile(struct PIFController *controller) {
+  size_t cur = 0;
+
+  if (!controller->eepromFile)
+    return -1;
+
+  rewind(controller->eepromFile);
+
+  while (cur < sizeof(controller->eeprom)) {
+    size_t remaining = sizeof(controller->eeprom) - cur;
+    size_t ret;
+
+    if ((ret = fwrite(controller->eeprom + cur, 1,
+      remaining, controller->eepromFile)) == 0 &&
+      ferror(controller->eepromFile))
+      return -1;
+
+    cur += ret;
+  }
+
+  return 0;
 }
 
