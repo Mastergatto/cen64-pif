@@ -24,7 +24,11 @@
 #include <string.h>
 #endif
 
+#ifdef GLFW3
+#include <GLFW/glfw3.h>
+#else
 #include <GL/glfw.h>
+#endif
 
 /* ============================================================================
  *  CalculateMemPakCRC: Calculates the CRC of MemPak data.
@@ -68,8 +72,14 @@ PIFHandleCommand(struct PIFController *controller, unsigned channel,
   uint16_t address, offset;
 
 #ifdef RETROLINK_JOYSTICK
+#ifdef GLFW3
+  int count;
+  const unsigned char *buttons;
+  const float *joystick;
+#else
   unsigned char buttons[12];
   float joystick[2];
+#endif /*GLFW3*/
   int8_t axes[2];
 #endif
 
@@ -114,8 +124,26 @@ PIFHandleCommand(struct PIFController *controller, unsigned channel,
 
 #ifdef RETROLINK_JOYSTICK
       /* Read the x and y axes of the controller. */
+#ifdef GLFW3
+        if(glfwJoystickPresent(GLFW_JOYSTICK_1) != GL_TRUE)
+          return 1;
+
+        joystick = glfwGetJoystickAxes(GLFW_JOYSTICK_1, &count);
+
+        if(count < 2)
+          return 1;
+
+
+        /* Make sure we are returned enough buttons for what is mapped. */
+        /* This value needs to be changed with the control mapping. */
+        buttons = glfwGetJoystickButtons(GLFW_JOYSTICK_1, &count);
+
+        if(count <= 9)
+          return 1;
+#else
       glfwGetJoystickPos(GLFW_JOYSTICK_1, joystick, 2);
       glfwGetJoystickButtons(GLFW_JOYSTICK_1, buttons, 12);
+#endif
 
       axes[0] = joystick[0] * 127;
       axes[1] = joystick[1] * 127;
