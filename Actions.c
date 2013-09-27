@@ -369,6 +369,8 @@ SetEEPROMFile(struct PIFController *controller, const char *filename) {
     controller->eepromFile = fopen(filename, "wb+");
     return;
   }
+
+  ReadEEPROMFile(controller);
 }
 
 /* ============================================================================
