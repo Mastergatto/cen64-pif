@@ -26,6 +26,13 @@ enum SIRegister {
   NUM_SI_REGISTERS
 };
 
+typedef enum {
+    KEYBOARD = 0,
+    MAYFLASH_N64 = 1,
+    RETROLINK = 2,
+    XBOX360 = 3
+} CONTROLTYPE;
+
 #ifndef NDEBUG
 extern const char *SIRegisterMnemonics[NUM_SI_REGISTERS];
 #endif
@@ -43,11 +50,13 @@ struct PIFController {
   uint8_t command[PIF_RAM_ADDRESS_LEN];
   uint8_t ram[PIF_RAM_ADDRESS_LEN];
   uint8_t eeprom[2048];
+  CONTROLTYPE input;
 };
 
 struct PIFController *CreatePIF(const char *);
 void DestroyPIF(struct PIFController *);
 void SetEEPROMFilename(struct PIFController *, const char *);
+void SetControlType(struct PIFController *, const char *);
 
 #endif
 
