@@ -124,144 +124,157 @@ PIFHandleCommand(struct PIFController *controller, unsigned channel,
       recvBuffer[1] = 0x00;
       recvBuffer[2] = 0x00;
       recvBuffer[3] = 0x00;
-      /* do shit for controller*/
+
       switch(controller->input) {
       case KEYBOARD:
-          /* Joystick, shift+direction keys*/
-          shift = (glfwGetKey(GLFW_KEY_LSHIFT) | glfwGetKey(GLFW_KEY_RSHIFT) ? 114 : 38);
-          if(glfwGetKey(GLFW_KEY_UP))           recvBuffer[3] = glfwGetKey(GLFW_KEY_UP) * shift;
-          else if(glfwGetKey(GLFW_KEY_DOWN))    recvBuffer[3] = glfwGetKey(GLFW_KEY_DOWN) * -shift;
-          if(glfwGetKey(GLFW_KEY_RIGHT))        recvBuffer[2] = glfwGetKey(GLFW_KEY_RIGHT) * shift;
-          else if(glfwGetKey(GLFW_KEY_LEFT))    recvBuffer[2] = glfwGetKey(GLFW_KEY_LEFT) * -shift;
-          /* Check for C buttons */
-          recvBuffer[1] |= glfwGetKey(GLFW_KEY_HOME) << 3; // C Up
-          recvBuffer[1] |= glfwGetKey(GLFW_KEY_END) << 2; // C Down
-          recvBuffer[1] |= glfwGetKey(GLFW_KEY_DEL) << 1; // C Left
-          recvBuffer[1] |= glfwGetKey(GLFW_KEY_PAGEDOWN) << 0; // C Right
-          /* Check for L/R flippers. */
-          recvBuffer[1] |= glfwGetKey('A') << 5;
-          recvBuffer[1] |= glfwGetKey('S')  << 4;
-          /* Check for A, Z, and B buttons. */
-          recvBuffer[0] |= glfwGetKey('X') << 7; // A
-          recvBuffer[0] |= glfwGetKey('C') << 6; // B
-          recvBuffer[0] |= glfwGetKey('Z') << 5; // Z
-          recvBuffer[0] |= glfwGetKey(GLFW_KEY_ENTER) << 4; // Start
-          /* Check for the D-Pad buttons. */
-          recvBuffer[0] |= glfwGetKey(GLFW_KEY_KP_8) << 3; // D Up
-          recvBuffer[0] |= glfwGetKey(GLFW_KEY_KP_2) << 2; // D Down
-          recvBuffer[0] |= glfwGetKey(GLFW_KEY_KP_4) << 1; // D Left
-          recvBuffer[0] |= glfwGetKey(GLFW_KEY_KP_6) << 0; // D Right
-          break;
+        /* Check for joystick input. */
+        /* L/R shift for less intensity. */
+        shift = (glfwGetKey(GLFW_KEY_LSHIFT)
+          | glfwGetKey(GLFW_KEY_RSHIFT) ? 38 : 114);
 
+        recvBuffer[2] = glfwGetKey(GLFW_KEY_RIGHT)
+          ? shift : glfwGetKey(GLFW_KEY_LEFT) * -shift;
+
+        recvBuffer[3] = glfwGetKey(GLFW_KEY_UP)
+          ? shift : glfwGetKey(GLFW_KEY_DOWN) * -shift;
+
+        /* Check for C buttons */
+        recvBuffer[1] |= glfwGetKey(GLFW_KEY_HOME) << 3; /* C Up */
+        recvBuffer[1] |= glfwGetKey(GLFW_KEY_END) << 2; /* C Down */
+        recvBuffer[1] |= glfwGetKey(GLFW_KEY_DEL) << 1; /* C Left */
+        recvBuffer[1] |= glfwGetKey(GLFW_KEY_PAGEDOWN) << 0; /* C Right */
+
+        /* Check for L/R flippers. */
+        recvBuffer[1] |= glfwGetKey('A') << 5;
+        recvBuffer[1] |= glfwGetKey('S') << 4;
+
+        /* Check for A, Z, and B buttons. */
+        recvBuffer[0] |= glfwGetKey('X') << 7;
+        recvBuffer[0] |= glfwGetKey('C') << 6;
+        recvBuffer[0] |= glfwGetKey('Z') << 5;
+        recvBuffer[0] |= glfwGetKey(GLFW_KEY_ENTER) << 4;
+
+        /* Check for the D-Pad buttons. */
+        recvBuffer[0] |= glfwGetKey(GLFW_KEY_KP_8) << 3; /* D Up */
+        recvBuffer[0] |= glfwGetKey(GLFW_KEY_KP_2) << 2; /* D Down */
+        recvBuffer[0] |= glfwGetKey(GLFW_KEY_KP_4) << 1; /* D Left */
+        recvBuffer[0] |= glfwGetKey(GLFW_KEY_KP_6) << 0; /* D Right */
+        break;
 
       case RETROLINK:
-          /* Read the x and y axes of the controller. */
-          glfwGetJoystickPos(channel, joystick, 2);
-          glfwGetJoystickButtons(channel, buttons, 12);
+        /* Read the x and y axes of the controller. */
+        glfwGetJoystickPos(channel, joystick, 2);
+        glfwGetJoystickButtons(channel, buttons, 12);
 
-          axes[0] = joystick[0] * 127;
-          axes[1] = joystick[1] * 127;
-          recvBuffer[2] = axes[0];
-          recvBuffer[3] = axes[1];
+        axes[0] = joystick[0] * 127;
+        axes[1] = joystick[1] * 127;
+        recvBuffer[2] = axes[0];
+        recvBuffer[3] = axes[1];
 
-          /* Check for joystick input. */
-          recvBuffer[0] = 0;
+        /* Check for joystick input. */
+        recvBuffer[0] = 0;
 
-          /* Check for C buttons. */
-          recvBuffer[1] |= buttons[0] << 3;
-          recvBuffer[1] |= buttons[1] << 0;
-          recvBuffer[1] |= buttons[2] << 2;
-          recvBuffer[1] |= buttons[3] << 1;
+        /* Check for C buttons. */
+        recvBuffer[1] |= buttons[0] << 3;
+        recvBuffer[1] |= buttons[1] << 0;
+        recvBuffer[1] |= buttons[2] << 2;
+        recvBuffer[1] |= buttons[3] << 1;
 
-          /* Check for L/R flippers. */
-          recvBuffer[1] |= buttons[4] << 5;
-          recvBuffer[1] |= buttons[5] << 4;
+        /* Check for L/R flippers. */
+        recvBuffer[1] |= buttons[4] << 5;
+        recvBuffer[1] |= buttons[5] << 4;
 
-          /* Check for A, Z, and B buttons. */
-          recvBuffer[0] |= buttons[6] << 7;
-          recvBuffer[0] |= buttons[7] << 5;
-          recvBuffer[0] |= buttons[8] << 6;
+        /* Check for A, Z, and B buttons. */
+        recvBuffer[0] |= buttons[6] << 7;
+        recvBuffer[0] |= buttons[7] << 5;
+        recvBuffer[0] |= buttons[8] << 6;
 
-          /* Check for the start button. */
-          recvBuffer[0] |= buttons[9] << 4;
-          break;
+        /* Check for the start button. */
+        recvBuffer[0] |= buttons[9] << 4;
+        break;
 
       case MAYFLASH_N64:
-          /* Read the x and y axes of the controller. */
-          glfwGetJoystickPos(channel, joystick, 4);
-          glfwGetJoystickButtons(channel, buttons, 16);
+        /* Read the x and y axes of the controller. */
+        glfwGetJoystickPos(channel, joystick, 4);
+        glfwGetJoystickButtons(channel, buttons, 16);
 
-          axes[0] = joystick[0] * 127;
-          axes[1] = joystick[1] * 127;
-          recvBuffer[2] = axes[0];
-          recvBuffer[3] = axes[1];
+        axes[0] = joystick[0] * 127;
+        axes[1] = joystick[1] * 127;
+        recvBuffer[2] = axes[0];
+        recvBuffer[3] = axes[1];
 
-          /* Check for joystick input. */
-          recvBuffer[0] = 0;
+        /* Check for joystick input. */
+        recvBuffer[0] = 0;
 
-          /* Check for C buttons. */
-          // if you *still* don't like this code, then eat a dick
-          memcpy(joystickint, joystick, 16);
-          if(0x3F4103C2 == joystickint[2]) recvBuffer[1] |= BUTTON_C_DOWN;
-          else if(0xBF3FFFC0 == joystickint[2]) recvBuffer[1] |= BUTTON_C_UP;
-          if(0x3F4103C2 == joystickint[3]) recvBuffer[1] |= BUTTON_C_LEFT;
-          else if(0xBF3FFFC0 == joystickint[3]) recvBuffer[1] |= BUTTON_C_RIGHT;
+        /* Check for C buttons. */
+        memcpy(joystickint, joystick, 16);
+        if(0x3F4103C2 == joystickint[2]) recvBuffer[1] |= BUTTON_C_DOWN;
+        else if(0xBF3FFFC0 == joystickint[2]) recvBuffer[1] |= BUTTON_C_UP;
+        if(0x3F4103C2 == joystickint[3]) recvBuffer[1] |= BUTTON_C_LEFT;
+        else if(0xBF3FFFC0 == joystickint[3]) recvBuffer[1] |= BUTTON_C_RIGHT;
 
-          /* Check for L/R flippers. */
-          recvBuffer[1] |= buttons[6] << 5;
-          recvBuffer[1] |= buttons[7] << 4;
+        /* Check for L/R flippers. */
+        recvBuffer[1] |= buttons[6] << 5;
+        recvBuffer[1] |= buttons[7] << 4;
 
-          /* Check for A, B, Z, and Start buttons. */
-          recvBuffer[0] |= buttons[1] << 7; // A
-          recvBuffer[0] |= buttons[2] << 6; // B
-          recvBuffer[0] |= buttons[8] << 5; // Z
-          recvBuffer[0] |= buttons[9] << 4; // S
+        /* Check for A, B, Z, and Start buttons. */
+        recvBuffer[0] |= buttons[1] << 7; /* A */
+        recvBuffer[0] |= buttons[2] << 6; /* B */
+        recvBuffer[0] |= buttons[8] << 5; /* Z */
+        recvBuffer[0] |= buttons[9] << 4; /* S */
 
-          /* Check for the D-Pad buttons. */
-          recvBuffer[0] |= buttons[12] << 3; // D Up
-          recvBuffer[0] |= buttons[14] << 2; // D Down
-          recvBuffer[0] |= buttons[15] << 1; // D Left
-          recvBuffer[0] |= buttons[13] << 0; // D Right
-          break;
+        /* Check for the D-Pad buttons. */
+        recvBuffer[0] |= buttons[12] << 3; /* D Up */
+        recvBuffer[0] |= buttons[14] << 2; /* D Down */
+        recvBuffer[0] |= buttons[15] << 1; /* D Left */
+        recvBuffer[0] |= buttons[13] << 0; /* D Right */
+        break;
 
       case XBOX360:
-          // joystick[0] = left joystick X, left=-1.000 - right=+1.000
-          // joystick[1] = left joystick Y, down=-1.000 - up   =+1.000 *(unsigned int*)&
-          // joystick[3] = right joystick Y, up =-1.000 - down =+1.000
-          // joystick[4] = right joystick X,left=-1.000 - right=+1.000 *(unsigned int*)&
-          // button 0 = A, 1 = B, 2 = X, 3 = Y, 4 = L, 5 = R, 6 = BACK, 7 = START, 8 = LEFT ANALOG CLICK, 9 = RIGHT ANALOG CLICK
-          glfwGetJoystickPos(channel, joystick, 5);
-          glfwGetJoystickButtons(channel, buttons, 10);
+        /* joystick[0] = left joystick X, left=-1.000 - right=+1.000 */
+        /* joystick[1] = left joystick Y, down=-1.000 - up   =+1.000 *(uint*) */
+        /* joystick[3] = right joystick Y, up =-1.000 - down =+1.000 */
+        /* joystick[4] = right joystick X,left=-1.000 - right=+1.000 *(uint*) */
+        /* button 0 = A, 1 = B, 2 = X, 3 = Y, 4 = L, 5 = R, 6 = BACK, */
+        /*        7 = START, 8 = LEFT ANALOG CLICK, 9 = RIGHT ANALOG CLICK */
 
-          axes[0] = joystick[0] * 127;
-          axes[1] = joystick[1] * 127;
-          recvBuffer[2] = axes[0];
-          recvBuffer[3] = axes[1];
+        /* Read the x and y axes of the controller. */
+        glfwGetJoystickPos(channel, joystick, 5);
+        glfwGetJoystickButtons(channel, buttons, 10);
 
-          /* Check for joystick input. */
-          recvBuffer[0] = 0;
-          recvBuffer[1] = 0;
-          /* Check for C buttons. */
-          if(joystick[3] > .75F) recvBuffer[1] |= BUTTON_C_DOWN;
-          else if(joystick[3] < -.75F) recvBuffer[1] |= BUTTON_C_UP;
-          if(joystick[4] < -.75F) recvBuffer[1] |= BUTTON_C_LEFT;
-          else if(joystick[4] > .75F) recvBuffer[1] |= BUTTON_C_RIGHT;
+        axes[0] = joystick[0] * 127;
+        axes[1] = joystick[1] * 127;
+        recvBuffer[2] = axes[0];
+        recvBuffer[3] = axes[1];
 
-          /* Check for L/R flippers. */
-          recvBuffer[1] |= buttons[4] << 5; // L
-          recvBuffer[1] |= (joystick[2] < -.75F) ? (1 << 4) : 0; // R
+        /* Check for joystick input. */
+        recvBuffer[0] = 0;
+        recvBuffer[1] = 0;
 
-          /* Check for A, B, Z, and Start buttons. */
-          recvBuffer[0] |= buttons[0] << 7; // A
-          recvBuffer[0] |= buttons[1] << 6; // B
-          recvBuffer[0] |= (joystick[2] > .75F) ? (1 << 5) : 0; // Z
-          recvBuffer[0] |= buttons[7] << 4; // S
+        /* Check for C buttons. */
+        if(joystick[3] > .75F) recvBuffer[1] |= BUTTON_C_DOWN;
+        else if(joystick[3] < -.75F) recvBuffer[1] |= BUTTON_C_UP;
+        if(joystick[4] < -.75F) recvBuffer[1] |= BUTTON_C_LEFT;
+        else if(joystick[4] > .75F) recvBuffer[1] |= BUTTON_C_RIGHT;
 
-          /* Check for the D-Pad buttons. */
-          /*recvBuffer[0] |= buttons[12] << 3; // D Up
-          recvBuffer[0] |= buttons[14] << 2; // D Down
-          recvBuffer[0] |= buttons[15] << 1; // D Left
-          recvBuffer[0] |= buttons[13] << 0; // D Right */
+        /* Check for L/R flippers. */
+        recvBuffer[1] |= buttons[4] << 5; /* L */
+        recvBuffer[1] |= (joystick[2] < -.75F) ? (1 << 4) : 0; /* R */
+
+        /* Check for A, B, Z, and Start buttons. */
+        recvBuffer[0] |= buttons[0] << 7; /* A */
+        recvBuffer[0] |= buttons[1] << 6; /* B */
+        recvBuffer[0] |= (joystick[2] > .75F) ? (1 << 5) : 0; /* Z */
+        recvBuffer[0] |= buttons[7] << 4; /* S */
+
+        /* Check for the D-Pad buttons. */
+        /* TODO: Why were these commented out? */
+#if 0
+        recvBuffer[0] |= buttons[12] << 3; /* D Up */
+        recvBuffer[0] |= buttons[14] << 2; /* D Down */
+        recvBuffer[0] |= buttons[15] << 1; /* D Left */
+        recvBuffer[0] |= buttons[13] << 0; /* D Right */
+#endif
 
       default:
         break;
