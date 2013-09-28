@@ -27,10 +27,11 @@ enum SIRegister {
 };
 
 typedef enum {
+    INVALID = -1,
     KEYBOARD = 0,
     MAYFLASH_N64 = 1,
     RETROLINK = 2,
-    XBOX360 = 3
+    XBOX360 = 3,
 } CONTROLTYPE;
 
 #ifndef NDEBUG

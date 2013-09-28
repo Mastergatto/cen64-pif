@@ -439,6 +439,27 @@ ReadEEPROMFile(struct PIFController *controller) {
 }
 
 /* ============================================================================
+ *  SetControlType: Sets the Control Type for the emulator.
+ * ========================================================================= */
+void
+SetControlType(struct PIFController *controller, const char *controltype) {
+  controller->input = INVALID;
+
+  if(!strncmp("keyboard", controltype, 8))
+    controller->input = KEYBOARD;
+  else if(!strncmp("mayflash64", controltype, 10))
+    controller->input = MAYFLASH_N64;
+  else if(!strncmp("retrolink", controltype, 9))
+    controller->input = RETROLINK;
+  else if(!strncmp("x360", controltype, 4))
+    controller->input = XBOX360;
+
+  /* Default to keyboard. */
+  if (controller->input == INVALID)
+    controller->input = KEYBOARD;
+}
+
+/* ============================================================================
  *  SetEEPROMFile: Sets the backing file for EEPROM saves.
  * ========================================================================= */
 void
@@ -529,21 +550,5 @@ WriteEEPROMFile(struct PIFController *controller) {
   }
 
   return 0;
-}
-
-/* ============================================================================
- *  SetControlType: Sets the Control Type for the emulator.
- * ========================================================================= */
-void
-SetControlType(struct PIFController *controller, const char *controltype) {
-  
-  if(!strcmp("keyboard", controltype))
-    controller->input = KEYBOARD;
-  else if(!strcmp("mayflash64", controltype))
-    controller->input = MAYFLASH_N64;
-  else if(!strcmp("retrolink", controltype))
-    controller->input = RETROLINK;
-  else if(!strcmp("x360", controltype))
-    controller->input = XBOX360;
 }
 
