@@ -19,6 +19,7 @@ void SIHandleDMAWrite(struct PIFController *);
 int ReadEEPROMFile(struct PIFController *);
 void SetEEPROMFile(struct PIFController *, const char *);
 int WriteEEPROMFile(struct PIFController *);
+void SetControlType(struct PIFController *, const char *);
 
 #endif
 
