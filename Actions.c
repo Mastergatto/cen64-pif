@@ -191,6 +191,9 @@ PIFHandleCommand(struct PIFController *controller, unsigned channel,
 
         /* Check for the start button. */
         recvBuffer[0] |= buttons[9] << 4;
+
+        /* Check for D-Pad buttons. */
+        /* TODO: Cannot read from Linux? */
         break;
 
       case MAYFLASH_N64:
@@ -268,7 +271,7 @@ PIFHandleCommand(struct PIFController *controller, unsigned channel,
         recvBuffer[0] |= buttons[7] << 4; /* S */
 
         /* Check for the D-Pad buttons. */
-        /* TODO: Why were these commented out? */
+        /* TODO: Cannot read values from GLFW? */
 #if 0
         recvBuffer[0] |= buttons[12] << 3; /* D Up */
         recvBuffer[0] |= buttons[14] << 2; /* D Down */
