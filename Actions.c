@@ -76,7 +76,7 @@ PIFHandleCommand(struct PIFController *controller, unsigned channel,
   const unsigned char *buttons;
   const float *joystick;
 #else
-  unsigned char buttons[16];
+  unsigned char buttons[17];
   float joystick[5];
   uint32_t joystickint[5];
 #endif /*GLFW3*/
@@ -233,6 +233,52 @@ PIFHandleCommand(struct PIFController *controller, unsigned channel,
         recvBuffer[0] |= buttons[13] << 0; /* D Right */
         break;
 
+      case WIIU:
+        /* joystick[0] = left joystick X, left=-1.000 - right=+1.000 */
+        /* joystick[1] = left joystick Y, down=-1.000 - up   =+1.000 *(uint*) */
+        /* joystick[3] = right joystick Y, up =-1.000 - down =+1.000 */
+        /* joystick[4] = right joystick X,left=-1.000 - right=+1.000 *(uint*) */
+        /* button 0 = B, 1 = A, 2 = X, 3 = Y, 4 = L, 5 = R, 6 = ZL, 7 = ZR */
+        /*        8 = BACK, 9 = START, 10 = HOME, 11 = LEFT ANALOG CLICK */
+        /*        12 = RIGHT ANALOG CLICK, 13 = D-UP, 14 = D-DOWN, 15 = D-LEFT */
+        /*        16 = D-RIGHT */
+
+        /* Read the x and y axes of the controller. */
+        glfwGetJoystickPos(channel, joystick, 4);
+        glfwGetJoystickButtons(channel, buttons, 17);
+
+        axes[0] = joystick[0] * 127;
+        axes[1] = joystick[1] * 127;
+        recvBuffer[2] = axes[0];
+        recvBuffer[3] = axes[1];
+
+        /* Check for joystick input. */
+        recvBuffer[0] = 0;
+        recvBuffer[1] = 0;
+
+        /* Check for C buttons. */
+        if(joystick[3] < -.75F) recvBuffer[1] |= BUTTON_C_DOWN;
+        else if(joystick[3] > .75F) recvBuffer[1] |= BUTTON_C_UP;
+        if(joystick[2] < -.75F) recvBuffer[1] |= BUTTON_C_LEFT;
+        else if(joystick[2] > .75F) recvBuffer[1] |= BUTTON_C_RIGHT;
+
+        /* Check for L/R flippers. */
+        recvBuffer[1] |= buttons[6] << 5; /* L */
+        recvBuffer[1] |= buttons[5] << 4; /* R */
+
+        /* Check for A, B, Z, and Start buttons. */
+        recvBuffer[0] |= buttons[1] << 7; /* A */
+        recvBuffer[0] |= buttons[0] << 6; /* B */
+        recvBuffer[0] |= buttons[4] << 5; /* Z */
+        recvBuffer[0] |= buttons[9] << 4; /* S */
+
+        /* Check for the D-Pad buttons. */
+        recvBuffer[0] |= buttons[13] << 3; /* D Up */
+        recvBuffer[0] |= buttons[14] << 2; /* D Down */
+        recvBuffer[0] |= buttons[15] << 1; /* D Left */
+        recvBuffer[0] |= buttons[16] << 0; /* D Right */
+        break;
+
       case XBOX360:
         /* joystick[0] = left joystick X, left=-1.000 - right=+1.000 */
         /* joystick[1] = left joystick Y, down=-1.000 - up   =+1.000 *(uint*) */
@@ -278,7 +324,6 @@ PIFHandleCommand(struct PIFController *controller, unsigned channel,
         recvBuffer[0] |= buttons[15] << 1; /* D Left */
         recvBuffer[0] |= buttons[13] << 0; /* D Right */
 #endif
-
       default:
         break;
       }
@@ -469,6 +514,8 @@ SetControlType(struct PIFController *controller, const char *controltype) {
     controller->input = RETROLINK;
   else if(!strncmp("x360", controltype, 4))
     controller->input = XBOX360;
+  else if(!strncmp("wiiu", controltype, 4))
+    controller->input = WIIU;
 
   /* Default to keyboard. */
   if (controller->input == INVALID)

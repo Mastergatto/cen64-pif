@@ -32,6 +32,7 @@ typedef enum {
     MAYFLASH_N64 = 1,
     RETROLINK = 2,
     XBOX360 = 3,
+    WIIU = 4,
 } CONTROLTYPE;
 
 #ifndef NDEBUG
