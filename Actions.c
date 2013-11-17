@@ -116,14 +116,8 @@ PIFHandleCommand(struct PIFController *controller, unsigned channel,
   case 0x01:
     switch(channel) {
     case 0:
-    case 1:
-    case 2:
-    case 3:
       debug("Read from controller.");
-      recvBuffer[0] = 0x00;
-      recvBuffer[1] = 0x00;
-      recvBuffer[2] = 0x00;
-      recvBuffer[3] = 0x00;
+      memset(recvBuffer, 0, 4);
 
       switch(controller->input) {
       case KEYBOARD:
@@ -327,7 +321,12 @@ PIFHandleCommand(struct PIFController *controller, unsigned channel,
       default:
         break;
       }
-      break;
+      return 0;
+
+    case 1:
+    case 2:
+    case 3:
+      return 1;
 
     default:
       debug("Read from invalid controller?");
@@ -455,7 +454,7 @@ PIFProcess(struct PIFController *controller) {
         ptr += recvBytes;
       }
 
-      else if (result == 1)
+      else
         controller->ram[ptr - 2] |= 0x80;
     }
 
